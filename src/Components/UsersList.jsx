@@ -3,14 +3,16 @@ import { useRef, useEffect, useState } from 'react';
 import AddUser from './AddUser';
 import EditUser from './EditUser';
 
-function UsersList({ keyword, updateKeyword }) {
+function UsersList({ keyword }) {
 
   const [Wait, setWait] = useState(true);
 
   const [UsersData, setUsersData] = useState([]);
 
   const [CardDropDown, setCardDropDown] = useState(false);
-  const [CardDropDownIndex, setCardDropDownIndex] = useState(0);
+  const [CardDropDownId, setCardDropDownId] = useState(0);
+
+  const [Colors, setColors] = useState([]);
 
   const [AddUserPage, setAddUserPage] = useState(false);
   const [EditUserPage, setEditUserPage] = useState(false);
@@ -80,6 +82,26 @@ function UsersList({ keyword, updateKeyword }) {
     setUsersData([]);
     setUsersData(response.data.allUsers);
     setWait(false);
+
+    return response.data.allUsers;
+  }
+
+  const makeColors = async () => {
+    const colors = ["#FF006E", "#FF7F3F", "#5800FF", "#3CCF4E", "#FF6FB5", "#B3541E"];
+
+    const newColor = [];
+    const Data = await getAllUsersData();
+
+    for (var i = 0; i < Data.length; i++) {
+      const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+
+      newColor.push({
+        id: Data[i].id,
+        color: selectedColor
+      })
+    }
+
+    setColors(newColor);
   }
 
   const deleteUser = async (id) => {
@@ -111,6 +133,7 @@ function UsersList({ keyword, updateKeyword }) {
 
   useEffect(() => {
     getAllUsersData();
+    makeColors();
 
     document.addEventListener("click", (e) => {
       // hide the Users card DropDown menu when click out side
@@ -118,8 +141,7 @@ function UsersList({ keyword, updateKeyword }) {
         setCardDropDown(false);
       }
     })
-  }, [])
-
+  }, []);
 
   useEffect(() => {
     const search = () => {
@@ -133,7 +155,6 @@ function UsersList({ keyword, updateKeyword }) {
             newData.push(user)
           }
 
-
           return newData
         })
 
@@ -143,7 +164,7 @@ function UsersList({ keyword, updateKeyword }) {
 
     search();
 
-    // to avoid the console warning
+    // * to avoid the console warning
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword])
 
@@ -163,7 +184,7 @@ function UsersList({ keyword, updateKeyword }) {
       }
 
       {EditUserPage &&
-        <EditUser displayError={displayError} displaySucc={displaySucc} closePage={setEditUserPage} getAllUsersData={getAllUsersData} person_id={CardDropDownIndex} />
+        <EditUser displayError={displayError} displaySucc={displaySucc} closePage={setEditUserPage} getAllUsersData={getAllUsersData} person_id={CardDropDownId} />
       }
 
       <div className='header flex justify-between items-center'>
@@ -179,22 +200,24 @@ function UsersList({ keyword, updateKeyword }) {
         <div className='relative grid md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-x-3 gap-y-3 my-4'>
           {UsersData.length !== 0 ?
             UsersData.map((user, key) => {
+              var theColor = Colors.filter(clr => clr.id === user.id && clr.color)
+
               return (
                 <div key={key} className='card relative bg-white shadow p-2 rounded'>
                   <div className='card-header flex justify-between items-center'>
                     <div className='flex items-center'>
-                      <div className={`bg-main text-white w-8 h-8 rounded-full flex justify-center items-center`}>
-                        <p className='relative bottom-px'>{user.person.first_name[0]}</p>
+                      <div style={{ backgroundColor: Colors.length > 0 && theColor[0].color }} className={`text-white w-8 h-8 rounded-full flex justify-center items-center`}>
+                        <p className='relative bottom-px'>{user.person.first_name.charAt(0).toUpperCase()}</p>
                       </div>
                       <div className='ml-2 font-semibold'>
                         <p>{user.person.first_name}</p>
                       </div>
                     </div>
-                    <div className='cursor-pointer' ref={cardsDropDown} onClick={(e) => { e.stopPropagation(); setCardDropDownIndex(user.id); setCardDropDown(true) }}>
+                    <div className='cursor-pointer' ref={cardsDropDown} onClick={(e) => { e.stopPropagation(); setCardDropDown(true); setCardDropDownId(user.id) }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" style={{ fill: "rgba(35, 35, 35)" }}>
                         <path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
                       </svg>
-                      {CardDropDownIndex === user.id &&
+                      {CardDropDownId === user.id &&
                         <div id="navbarDropDown" className={`absolute right-1 ${!CardDropDown && "hidden"} mt-4 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700`}>
                           <ul className="py-1 text-sm text-gray-200" aria-labelledby="navbarDropDownDefault">
                             <button onClick={() => setEditUserPage(true)} className="w-full py-1 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -206,6 +229,7 @@ function UsersList({ keyword, updateKeyword }) {
                           </ul>
                         </div>
                       }
+
                     </div>
 
                   </div>

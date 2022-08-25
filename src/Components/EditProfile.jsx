@@ -107,7 +107,6 @@ function EditProfile({ displayError, displaySucc, closePage }) {
     getProfileData();
   }, [])
   
-
   return (
     <div className='fixed top-0 left-0 min-h-screen w-full flex justify-center items-center bg-white/50 backdrop-blur-sm rounded z-20'>
       <div className='bg-white shadow p-2'>

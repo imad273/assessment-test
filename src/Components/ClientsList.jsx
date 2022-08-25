@@ -3,14 +3,16 @@ import { useRef, useEffect, useState } from 'react';
 import EditClient from './EditClient';
 import AddClient from './AddClient';
 
-function ClientsList({ keyword, updateKeyword }) {
+function ClientsList({ keyword }) {
 
   const [Wait, setWait] = useState(true);
 
   const [ClientData, setClientData] = useState([]);
 
   const [CardDropDown, setCardDropDown] = useState(false);
-  const [CardDropDownIndex, setCardDropDownIndex] = useState(0);
+  const [CardDropDownId, setCardDropDownId] = useState(0);
+
+  const [Colors, setColors] = useState([]);
 
   const [AddClientPage, setAddClientPage] = useState(false);
   const [EditClientPage, setEditClientPage] = useState(false);
@@ -77,7 +79,27 @@ function ClientsList({ keyword, updateKeyword }) {
 
     const response = await request.json();
     setClientData(response.data.allClients);
-    setWait(false)
+    setWait(false);
+
+    return response.data.allClients;
+  }
+
+  const makeColors = async () => {
+    const colors = ["#FF006E", "#FF7F3F", "#5800FF", "#3CCF4E", "#FF6FB5", "#B3541E"];
+
+    const newColor = [];
+    const Data = await getAllClientsData();
+
+    for (var i = 0; i < Data.length; i++) {
+      const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+
+      newColor.push({
+        id: Data[i].id,
+        color: selectedColor
+      })
+    }
+
+    setColors(newColor);
   }
 
   const deleteClient = async (id) => {
@@ -108,6 +130,7 @@ function ClientsList({ keyword, updateKeyword }) {
   }
 
   useEffect(() => {
+    makeColors();
     getAllClientsData();
 
     document.addEventListener("click", (e) => {
@@ -118,23 +141,23 @@ function ClientsList({ keyword, updateKeyword }) {
     })
   }, [])
 
-  
+
   useEffect(() => {
     const search = () => {
       let newData = [];
-  
+
       if (keyword === '') {
         getAllClientsData();
       } else {
-  
+
         ClientData.filter(user => {
           if (user.person.first_name.toLowerCase().includes(keyword.toLowerCase())) {
             newData.push(user)
           }
-          
+
           return newData
         })
-  
+
         setClientData(newData);
       }
     }
@@ -159,7 +182,7 @@ function ClientsList({ keyword, updateKeyword }) {
       }
 
       {EditClientPage &&
-        <EditClient displayError={displayError} displaySucc={displaySucc} closePage={setEditClientPage} getAllUsersData={getAllClientsData} person_id={CardDropDownIndex} />
+        <EditClient displayError={displayError} displaySucc={displaySucc} closePage={setEditClientPage} getAllUsersData={getAllClientsData} person_id={CardDropDownId} />
       }
 
       <div className='header flex justify-between items-center'>
@@ -175,22 +198,24 @@ function ClientsList({ keyword, updateKeyword }) {
         <div className='grid md:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-x-3 gap-y-3 my-4'>
           {ClientData.length !== 0 ?
             ClientData.map((client, key) => {
+              const theColor = Colors.filter(clr => clr.id === client.id && clr.color)
+
               return (
                 <div key={key} className='card relative bg-white shadow p-2 rounded'>
                   <div className='card-header flex justify-between items-center'>
                     <div className='flex items-center'>
-                      <div className={`bg-main text-white w-8 h-8 rounded-full flex justify-center items-center`}>
+                      <div style={{ backgroundColor: Colors.length > 0 && theColor[0].color }} className={`text-white w-8 h-8 rounded-full flex justify-center items-center`}>
                         <p className='relative bottom-px'>{client.person.first_name[0]}</p>
                       </div>
                       <div className='ml-2 font-semibold'>
                         <p>{client.person.first_name}</p>
                       </div>
                     </div>
-                    <div className='cursor-pointer' ref={cardsDropDown} onClick={(e) => { e.stopPropagation(); setCardDropDownIndex(client.id); setCardDropDown(true) }}>
+                    <div className='cursor-pointer' ref={cardsDropDown} onClick={(e) => { e.stopPropagation(); setCardDropDownId(client.id); setCardDropDown(true) }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" style={{ fill: "rgba(35, 35, 35)" }}>
                         <path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
                       </svg>
-                      {CardDropDownIndex === client.id &&
+                      {CardDropDownId === client.id &&
                         <div id="navbarDropDown" className={`absolute right-1 ${!CardDropDown && "hidden"} mt-4 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700`}>
                           <ul className="py-1 text-sm text-gray-200" aria-labelledby="navbarDropDownDefault">
                             <button onClick={() => { setEditClientPage(true) }} className="w-full py-1 dark:hover:bg-gray-600 dark:hover:text-white">

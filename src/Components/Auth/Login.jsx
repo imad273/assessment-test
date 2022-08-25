@@ -79,7 +79,7 @@ function Login() {
       <div className={`${!Error && "hidden"} w-11/12 sm:w-8/12 fixed top-0 bg-red-500 px-2 mt-2 rounded`}>
         <p className="text-white font-medium text-center text-lg">{ErrorMsg}</p>
       </div>
-      <div className='lg:w-4/12 md:w-5/12 sm:w-6/12 flex flex-col bg-[#f9f9f9] px-3 py-2 shadow-md'>
+      <div className='lg:w-4/12 md:w-5/12 sm:w-6/12 flex flex-col bg-[#f9f9f9] border border-[E6E6E6] rounded px-3 py-2 shadow-md'>
         <div>
           <h3 className='text-5xl font-medium pb-2'>Login</h3>
           <p className='text-secText text-sm font-medium mt-0.5'>Enter your information to access your account</p>

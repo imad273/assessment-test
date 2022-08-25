@@ -7,6 +7,8 @@ function Navbar({ keyword, updateKeyword }) {
 
   const navigate = useNavigate();
 
+  const [user, setUser] = useState("");
+
   const [navbarDropDown, setNavbarDropDown] = useState(false);
   const [EditProfilePage, setEditProfilePage] = useState(false);
 
@@ -17,6 +19,39 @@ function Navbar({ keyword, updateKeyword }) {
   const [SuccessMsg, setSuccessMsg] = useState("success");
 
   const navDropDown = useRef(null);
+
+  const [Color, setColor] = useState();
+
+  const makeColors = () => {
+    const colors = ["#FF006E", "#FF7F3F", "#5800FF", "#3CCF4E", "#FF6FB5", "#B3541E"];
+
+    const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+
+    setColor(selectedColor);
+  }
+
+  const getProfileData = async () => {
+    const id = window.sessionStorage.getItem("user_id");
+
+    const request = await fetch('https://test-api-9kapg.qafilaty.com/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          {
+            user(id: "${id}") {
+              user_name
+            }
+          }
+          `
+      })
+    })
+
+    const response = await request.json()
+
+    setUser(response.data.user.user_name);
+  }
+
 
   const signOut = () => {
     window.sessionStorage.clear();
@@ -46,6 +81,9 @@ function Navbar({ keyword, updateKeyword }) {
   }
 
   useEffect(() => {
+    makeColors();
+    getProfileData();
+
     document.addEventListener("click", (e) => {
       // hide the navbar DropDown menu when click out side
       if (navDropDown.current !== null && !navDropDown.current.contains(e.target)) {
@@ -75,13 +113,10 @@ function Navbar({ keyword, updateKeyword }) {
         </div>
         <input type="text" value={keyword} onChange={(e) => { updateKeyword(e.target.value) }} className='bg-[#f8f8f8] outline-none p-1' placeholder='Search' />
       </div>
-  
-      <div ref={navDropDown} onClick={() => setNavbarDropDown(true)} className='bg-main hover:bg-mainHover duration-200 my-2 mx-0.5 p-1.5 rounded cursor-pointer'>
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" style={{ fill: "rgba(255, 255, 255, 255)" }}>
-            <path d="M7.5 6.5C7.5 8.981 9.519 11 12 11s4.5-2.019 4.5-4.5S14.481 2 12 2 7.5 4.019 7.5 6.5zM20 21h1v-1c0-3.859-3.141-7-7-7h-4c-3.86 0-7 3.141-7 7v1h17z">
-            </path>
-          </svg>
+      
+      <div ref={navDropDown} onClick={() => setNavbarDropDown(true)} className='my-2 mx-0.5 rounded cursor-pointer'>
+        <div style={{ backgroundColor: Color }} className={`text-white w-9 h-9 rounded-full flex justify-center items-center`}>
+          <p className='relative bottom-px'>{user.charAt(0)}</p>
         </div>
         <div id="navbarDropDown" className={`${!navbarDropDown && "hidden"} absolute right-3 mt-4 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700`}>
           <ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="navbarDropDownDefault">
